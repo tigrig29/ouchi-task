@@ -1,0 +1,17 @@
+{
+  "projects": {
+    "default": "project-name"
+  },
+  "targets": {
+    "project-name": {
+      "hosting": {
+        "release": [
+          "hosting-site-name"
+        ],
+        "develop": [
+          "hosting-site-name-dev"
+        ]
+      }
+    }
+  }
+}
