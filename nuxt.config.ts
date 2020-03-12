@@ -31,7 +31,7 @@ const config: Configuration = {
    */
   plugins: ['~/plugins/firebase'],
   router: {
-    middleware: ['localStorage']
+    middleware: ['localStorage', 'redirect', 'authHandler']
   },
   /*
    ** Nuxt.js dev-modules
