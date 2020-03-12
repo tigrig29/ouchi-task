@@ -32,5 +32,9 @@
   "vetur.format.defaultFormatter.ts": "prettier",
   "css.validate": false,
   "scss.validate": false,
-  "cSpell.words": ["stylelint"]
+  "cSpell.words": [
+    "Ouchi",
+    "firestore",
+    "stylelint"
+  ]
 }
