@@ -30,6 +30,9 @@ const config: Configuration = {
    ** Plugins to load before mounting the App
    */
   plugins: ['~/plugins/firebase'],
+  router: {
+    middleware: ['localStorage']
+  },
   /*
    ** Nuxt.js dev-modules
    */
