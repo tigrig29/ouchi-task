@@ -1,11 +1,13 @@
-import { Store } from 'vuex'
-// import { getModule } from 'vuex-module-decorators'
+/* eslint-disable import/no-mutable-exports */
 
-// let todosStore: Todos
+import { Store } from 'vuex'
+import { getModule } from 'vuex-module-decorators'
+import User from '~/store/user'
+
+let userStore: User
 
 function initializeStores(store: Store<any>): void {
-  // todosStore = getModule(Todos, store)
-  console.log(store)
+  userStore = getModule(User, store)
 }
 
-export { initializeStores /*, todosStore */ }
+export { initializeStores, userStore }
