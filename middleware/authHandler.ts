@@ -1,4 +1,4 @@
-import firebase from '~/plugins/firebase'
+import { firebase } from '~/plugins/firebase'
 import { userStore, othersStore } from '~/store'
 
 export default () => {
