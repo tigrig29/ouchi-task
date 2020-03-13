@@ -1,5 +1,5 @@
 import { Module, VuexModule, Mutation, Action } from 'vuex-module-decorators'
-import firebase from '~/plugins/firebase'
+import { firebase } from '~/plugins/firebase'
 
 @Module({ stateFactory: true, namespaced: true, name: 'user' })
 export default class User extends VuexModule {

@@ -13,7 +13,7 @@
 
 <script lang="ts">
 import { Component, Vue } from 'nuxt-property-decorator'
-import firebase from '~/plugins/firebase'
+import { firebase } from '~/plugins/firebase'
 
 import Logo from '~/components/Logo.vue'
 
