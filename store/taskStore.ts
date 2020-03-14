@@ -44,6 +44,12 @@ export default class TaskStore extends VuexModule {
     }
   }
 
+  get cardsSortedByPosition() {
+    return [...this.cards].sort((a, b) => {
+      return a.position - b.position
+    })
+  }
+
   @Mutation
   clearCards() {
     this.cards.splice(0)

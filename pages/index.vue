@@ -47,7 +47,7 @@ export default class Index extends Vue {
   }
 
   get cards() {
-    return taskStore.cards
+    return taskStore.cardsSortedByPosition
   }
 
   async logout() {
