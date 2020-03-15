@@ -1,15 +1,15 @@
 {
   "projects": {
-    "default": "project-name"
+    "default": "ouchi-task"
   },
   "targets": {
-    "project-name": {
+    "ouchi-task": {
       "hosting": {
         "release": [
-          "hosting-site-name"
+          "ouchi-task"
         ],
         "develop": [
-          "hosting-site-name-dev"
+          "ouchi-task-dev"
         ]
       }
     }
