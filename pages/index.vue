@@ -13,6 +13,7 @@
           :key="`task-${taskId}`"
           class="text-left"
         >
+          <b-icon-trash-fill variant="danger" @click="deleteTask(taskId)" />
           <b-form-textarea
             :id="`input-task-title-${cardId}-${taskId}`"
             class="task-title"
@@ -34,7 +35,12 @@
 
 <script lang="ts">
 import { Component, Vue } from 'nuxt-property-decorator'
-import { BIconCircle, BIconCheck, BIconCheckCircle } from 'bootstrap-vue'
+import {
+  BIconCircle,
+  BIconCheck,
+  BIconCheckCircle,
+  BIconTrashFill
+} from 'bootstrap-vue'
 import { firebase } from '~/plugins/firebase'
 import { cardStore, taskStore, userStore } from '~/store'
 import firestoreWriter from '~/assets/libs/firestoreWriter'
@@ -46,7 +52,8 @@ import Logo from '~/components/Logo.vue'
     Logo,
     BIconCircle,
     BIconCheck,
-    BIconCheckCircle
+    BIconCheckCircle,
+    BIconTrashFill
   },
   middleware: 'fetchFirestore'
 })
@@ -74,6 +81,17 @@ export default class Index extends Vue {
   toggleTaskDone(taskId: string) {
     taskStore.toggleTaskDone({ taskId })
     firestoreWriter.updateTask(userStore.id || '', taskId)
+  }
+
+  async deleteTask(taskId: string) {
+    const result: boolean = await this.$bvModal.msgBoxConfirm(
+      '削除してもよろしいですか？'
+    )
+
+    if (result) {
+      firestoreWriter.deleteTask(userStore.id || '', taskId)
+      taskStore.deleteTask({ taskId })
+    }
   }
 }
 </script>

@@ -53,4 +53,10 @@ export default class TaskStore extends VuexModule {
     const task = this.taskList[taskId]
     task.done = !task.done
   }
+
+  @Mutation
+  deleteTask(payload: { taskId: string }) {
+    const { taskId } = payload
+    Vue.delete(this.taskList, taskId)
+  }
 }
