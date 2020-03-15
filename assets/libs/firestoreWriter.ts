@@ -11,5 +11,11 @@ export default {
       done: task.done,
       updatedAt: firestore.Timestamp.now()
     })
+  },
+  deleteTask: async (userId: string, taskId: string) => {
+    const taskRef = taskStore
+      .tasksRef(userId, taskStore.taskList[taskId].parentCardId)
+      .doc(taskId)
+    await taskRef.delete()
   }
 }
