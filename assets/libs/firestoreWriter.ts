@@ -1,8 +1,25 @@
 import { firestore } from 'firebase'
 import { cardStore, taskStore } from '~/store'
-import { Task } from '~/types/firestore'
+import { Card, Task } from '~/types/firestore'
 
 export default {
+  addCard: async (
+    userId: string,
+    title: string,
+    position: number,
+    denominator: number,
+    denominatorUnit: Card['denominatorUnit']
+  ) => {
+    const card: Card = {
+      title,
+      position,
+      denominator,
+      denominatorUnit
+    }
+    const cardRef = await cardStore.cardsRef(userId).add(card)
+
+    return { cardId: cardRef.id, card }
+  },
   updateCard: async (userId: string, cardId: string) => {
     const card = cardStore.cardList[cardId]
 

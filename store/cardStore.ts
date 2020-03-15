@@ -16,6 +16,15 @@ export default class CardStore extends VuexModule {
     }
   }
 
+  get currentMaxPosition() {
+    let max: number = -1
+    for (const cardId in this.cardList) {
+      const card = this.cardList[cardId]
+      if (card.position > max) max = card.position
+    }
+    return max
+  }
+
   @Mutation
   clearCards() {
     this.cardList = {}
