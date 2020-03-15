@@ -1,5 +1,6 @@
 <template>
   <div class="main container-fluid">
+    <p>{{ formattedClock }}</p>
     <button @click="logout">Logout</button>
     <b-card-group deck class="cards">
       <b-card
@@ -144,6 +145,9 @@ import Logo from '~/components/Logo.vue'
   middleware: 'fetchFirestore'
 })
 export default class Index extends Vue {
+  intervalId?: NodeJS.Timeout = undefined
+  clock: Date = new Date()
+
   newTaskTitle: { [key: string]: string } = {}
   edittingCardId = ''
   edittingCardValue: Card = {
@@ -162,6 +166,41 @@ export default class Index extends Vue {
       return taskStore.tasksSearchedByCardId(cardId)
     }
   }
+
+  get formattedClock() {
+    return (
+      this.clock.getFullYear() +
+      '/' +
+      this.clock.getMonth() +
+      '/' +
+      this.clock.getDate() +
+      ' ' +
+      this.clock.getHours() +
+      ':' +
+      this.clock.getMinutes() +
+      ':' +
+      this.clock.getSeconds()
+    )
+  }
+
+  // =================================================
+  // ライフサイクルフック
+  // =================================================
+
+  created() {
+    this.intervalId = setInterval(() => {
+      // 時計更新
+      this.clock = new Date()
+    }, 1000)
+  }
+
+  beforeDestroy() {
+    if (this.intervalId) clearInterval(this.intervalId)
+  }
+
+  // =================================================
+  // 認証処理
+  // =================================================
 
   async logout() {
     await firebase.auth().signOut()
