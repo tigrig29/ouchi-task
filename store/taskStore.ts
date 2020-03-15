@@ -28,6 +28,17 @@ export default class TaskStore extends VuexModule {
     }
   }
 
+  get currentMaxPosition() {
+    return (cardId: string): number => {
+      let max: number = -1
+      for (const taskId in this.tasksSearchedByCardId(cardId)) {
+        const task = this.taskList[taskId]
+        if (task.position > max) max = task.position
+      }
+      return max
+    }
+  }
+
   @Mutation
   clearTasks() {
     this.taskList = {}

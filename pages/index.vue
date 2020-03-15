@@ -28,6 +28,17 @@
             <b-icon-check-circle v-else variant="success" font-scale="1.2" />
           </div>
         </b-card-text>
+
+        <b-card-text class="text-left">
+          <b-form-textarea
+            :id="`input-task-title-new-of-${cardId}`"
+            v-model="newTaskTitle[cardId]"
+            placeholder="タスク内容を入力……"
+            no-resize
+            no-auto-shrink
+          ></b-form-textarea>
+          <b-button @click="addTask(cardId)">タスクを追加</b-button>
+        </b-card-text>
       </b-card>
     </b-card-group>
   </div>
@@ -58,6 +69,8 @@ import Logo from '~/components/Logo.vue'
   middleware: 'fetchFirestore'
 })
 export default class Index extends Vue {
+  newTaskTitle: { [key: string]: string } = {}
+
   get cards() {
     return cardStore.cardList
   }
@@ -71,6 +84,21 @@ export default class Index extends Vue {
   async logout() {
     await firebase.auth().signOut()
     this.$router.push('/login')
+  }
+
+  async addTask(cardId: string) {
+    const title: string = this.newTaskTitle[cardId]
+    const position: number = taskStore.currentMaxPosition(cardId) + 1
+
+    const { taskId, task } = await firestoreWriter.addTask(
+      userStore.id || '',
+      cardId,
+      title,
+      position
+    )
+    taskStore.addTask({ taskId, task })
+
+    this.newTaskTitle[cardId] = ''
   }
 
   updateTaskTitle(taskId: string, title: string) {
