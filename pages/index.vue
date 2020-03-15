@@ -162,7 +162,7 @@ export default class Index extends Vue {
     position: 0,
     denominator: 1,
     denominatorUnit: 'day',
-    lastResetAt: '2020-01-01'
+    lastResetAt: date.pickUpDate(new Date(), '-')
   }
 
   get cards() {
@@ -296,7 +296,7 @@ export default class Index extends Vue {
         position: 0,
         denominator: 1,
         denominatorUnit: 'day',
-        lastResetAt: '2020-01-01'
+        lastResetAt: date.pickUpDate(new Date(), '-')
       }
     }, 200)
   }
