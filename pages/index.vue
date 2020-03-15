@@ -5,9 +5,12 @@
       <b-card
         v-for="(card, cardId) in cards"
         :key="`card-${cardId}`"
-        :header="card.title"
         class="text-center"
       >
+        <template v-slot:header>
+          <span>{{ card.title }}</span>
+          <b-icon-gear @click="showCardEditor(cardId)" />
+        </template>
         <b-card-text
           v-for="(task, taskId) in tasks(cardId)"
           :key="`task-${taskId}`"
@@ -41,6 +44,64 @@
         </b-card-text>
       </b-card>
     </b-card-group>
+    <b-modal id="modal-card-editor" size="md" centered title="グループ編集">
+      <b-form>
+        <label for="inline-form-input-name">タイトル</label>
+        <b-input
+          id="inline-form-input-name"
+          v-model="edittingCardValue.title"
+          :state="cardValidState.title"
+          placeholder="タイトルを入力してください"
+        ></b-input>
+      </b-form>
+      <b-form class="mt-4">
+        <label>リセット期間</label>
+        <b-form inline>
+          <label class="sr-only" for="inline-form-input-name">値</label>
+          <b-input-group class="w-25 mb-2 mr-sm-2 mb-sm-0">
+            <b-input
+              id="inline-form-input-name"
+              v-model="edittingCardValue.denominator"
+              :state="cardValidState.denominator"
+              type="number"
+            ></b-input>
+          </b-input-group>
+
+          <label class="sr-only" for="inline-form-custom-select-pref">
+            単位
+          </label>
+          <b-form-select
+            id="inline-form-custom-select-pref"
+            v-model="edittingCardValue.denominatorUnit"
+            :state="cardValidState.denominatorUnit"
+            class="w-25 mb-2 mr-sm-2 mb-sm-0"
+            :options="[
+              { text: '選択...', value: null },
+              { text: '秒', value: 'second' },
+              { text: '分', value: 'minute' },
+              { text: '時間', value: 'hour' },
+              { text: '日', value: 'day' },
+              { text: '週間', value: 'week' },
+              { text: '月', value: 'month' },
+              { text: '年', value: 'year' }
+            ]"
+          ></b-form-select>
+          <label>ごとにリセット</label>
+        </b-form>
+      </b-form>
+      <template v-slot:modal-footer>
+        <b-button variant="secondary" @click="closeCardEditor">
+          キャンセル
+        </b-button>
+        <b-button
+          variant="primary"
+          :disabled="!cardValidStateAll"
+          @click="updateCard"
+        >
+          保存
+        </b-button>
+      </template>
+    </b-modal>
   </div>
 </template>
 
@@ -50,8 +111,10 @@ import {
   BIconCircle,
   BIconCheck,
   BIconCheckCircle,
-  BIconTrashFill
+  BIconTrashFill,
+  BIconGear
 } from 'bootstrap-vue'
+import { Card } from '../types/firestore'
 import { firebase } from '~/plugins/firebase'
 import { cardStore, taskStore, userStore } from '~/store'
 import firestoreWriter from '~/assets/libs/firestoreWriter'
@@ -64,12 +127,20 @@ import Logo from '~/components/Logo.vue'
     BIconCircle,
     BIconCheck,
     BIconCheckCircle,
-    BIconTrashFill
+    BIconTrashFill,
+    BIconGear
   },
   middleware: 'fetchFirestore'
 })
 export default class Index extends Vue {
   newTaskTitle: { [key: string]: string } = {}
+  edittingCardId = ''
+  edittingCardValue: Card = {
+    title: '',
+    position: 0,
+    denominator: 1,
+    denominatorUnit: 'day'
+  }
 
   get cards() {
     return cardStore.cardList
@@ -84,6 +155,62 @@ export default class Index extends Vue {
   async logout() {
     await firebase.auth().signOut()
     this.$router.push('/login')
+  }
+
+  get cardValidState() {
+    return {
+      title: this.edittingCardValue.title.length > 0,
+      denominator: this.edittingCardValue.denominator > 0,
+      denominatorUnit: this.edittingCardValue.denominatorUnit !== null
+    }
+  }
+
+  get cardValidStateAll() {
+    return (
+      this.cardValidState.title &&
+      this.cardValidState.denominator &&
+      this.cardValidState.denominatorUnit
+    )
+  }
+
+  showCardEditor(cardId) {
+    this.$bvModal.show('modal-card-editor')
+    this.edittingCardId = cardId
+    this.edittingCardValue.title = cardStore.cardList[cardId].title
+    this.edittingCardValue.denominator = cardStore.cardList[cardId].denominator
+    this.edittingCardValue.denominatorUnit =
+      cardStore.cardList[cardId].denominatorUnit
+  }
+
+  closeCardEditor() {
+    this.$bvModal.hide('modal-card-editor')
+    this.edittingCardId = ''
+    // edittingCardValue を即時リセットすると、
+    // モーダルのフェードアウト中に値が変化してしまうので遅延
+    setTimeout(() => {
+      this.edittingCardValue = {
+        title: '',
+        position: 0,
+        denominator: 1,
+        denominatorUnit: 'day'
+      }
+    }, 200)
+  }
+
+  async updateCard() {
+    const cardId: string = this.edittingCardId
+    const card: Card = {
+      position: cardStore.cardList[cardId].position,
+      ...this.edittingCardValue
+    }
+
+    // input type="number" の入力値が string っぽいのでキャスト
+    if (typeof card.denominator === 'string')
+      card.denominator = parseInt(card.denominator)
+
+    cardStore.updateCard({ cardId, card })
+    await firestoreWriter.updateCard(userStore.id || '', cardId)
+    this.closeCardEditor()
   }
 
   async addTask(cardId: string) {

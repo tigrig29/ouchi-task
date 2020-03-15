@@ -27,4 +27,10 @@ export default class CardStore extends VuexModule {
     Vue.set(this.cardList, cardId, {} as Card)
     this.cardList[cardId] = card
   }
+
+  @Mutation
+  updateCard(payload: { cardId: string; card: Card }) {
+    const { cardId, card } = payload
+    this.cardList[cardId] = card
+  }
 }
