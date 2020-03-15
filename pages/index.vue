@@ -88,6 +88,9 @@
           ></b-form-select>
           <label>ごとにリセット</label>
         </b-form>
+        <b-button class="mt-4" variant="danger" @click="deleteCard">
+          削除
+        </b-button>
       </b-form>
       <template v-slot:modal-footer>
         <b-button variant="secondary" @click="closeCardEditor">
@@ -157,6 +160,10 @@ export default class Index extends Vue {
     this.$router.push('/login')
   }
 
+  // =================================================
+  // card の更新処理
+  // =================================================
+
   get cardValidState() {
     return {
       title: this.edittingCardValue.title.length > 0,
@@ -212,6 +219,22 @@ export default class Index extends Vue {
     await firestoreWriter.updateCard(userStore.id || '', cardId)
     this.closeCardEditor()
   }
+
+  async deleteCard() {
+    const result: boolean = await this.$bvModal.msgBoxConfirm(
+      '削除してもよろしいですか？'
+    )
+
+    if (result) {
+      await firestoreWriter.deleteCard(userStore.id || '', this.edittingCardId)
+      cardStore.deleteCard({ cardId: this.edittingCardId })
+      this.closeCardEditor()
+    }
+  }
+
+  // =================================================
+  // task の更新処理
+  // =================================================
 
   async addTask(cardId: string) {
     const title: string = this.newTaskTitle[cardId]

@@ -14,6 +14,10 @@ export default {
       denominatorUnit: card.denominatorUnit
     })
   },
+  deleteCard: async (userId: string, cardId: string) => {
+    const cardRef = cardStore.cardsRef(userId).doc(cardId)
+    await cardRef.delete()
+  },
   addTask: async (
     userId: string,
     cardId: string,
