@@ -44,7 +44,10 @@
         </b-card-text>
       </b-card>
     </b-card-group>
-    <b-modal id="modal-card-editor" size="md" centered title="グループ編集">
+    <b-button class="mt-4" @click="showCardEditor('')">
+      グループを追加
+    </b-button>
+    <b-modal id="modal-card-editor" size="md" centered :title="cardEditorTitle">
       <b-form>
         <label for="inline-form-input-name">タイトル</label>
         <b-input
@@ -88,7 +91,12 @@
           ></b-form-select>
           <label>ごとにリセット</label>
         </b-form>
-        <b-button class="mt-4" variant="danger" @click="deleteCard">
+        <b-button
+          v-show="!isEditingNewCard"
+          class="mt-4"
+          variant="danger"
+          @click="deleteCard"
+        >
           削除
         </b-button>
       </b-form>
@@ -99,7 +107,7 @@
         <b-button
           variant="primary"
           :disabled="!cardValidStateAll"
-          @click="updateCard"
+          @click="saveCard"
         >
           保存
         </b-button>
@@ -164,6 +172,10 @@ export default class Index extends Vue {
   // card の更新処理
   // =================================================
 
+  get cardEditorTitle() {
+    return this.isEditingNewCard ? '新規グループ作成' : 'グループ編集'
+  }
+
   get cardValidState() {
     return {
       title: this.edittingCardValue.title.length > 0,
@@ -180,13 +192,20 @@ export default class Index extends Vue {
     )
   }
 
-  showCardEditor(cardId) {
+  get isEditingNewCard() {
+    return this.edittingCardId === ''
+  }
+
+  showCardEditor(cardId: string) {
     this.$bvModal.show('modal-card-editor')
     this.edittingCardId = cardId
-    this.edittingCardValue.title = cardStore.cardList[cardId].title
-    this.edittingCardValue.denominator = cardStore.cardList[cardId].denominator
-    this.edittingCardValue.denominatorUnit =
-      cardStore.cardList[cardId].denominatorUnit
+    if (!this.isEditingNewCard) {
+      this.edittingCardValue.title = cardStore.cardList[cardId].title
+      this.edittingCardValue.denominator =
+        cardStore.cardList[cardId].denominator
+      this.edittingCardValue.denominatorUnit =
+        cardStore.cardList[cardId].denominatorUnit
+    }
   }
 
   closeCardEditor() {
@@ -204,20 +223,45 @@ export default class Index extends Vue {
     }, 200)
   }
 
+  async saveCard() {
+    // input type="number" の入力値が string っぽいのでキャスト
+    if (typeof this.edittingCardValue.denominator === 'string') {
+      this.edittingCardValue.denominator = parseInt(
+        this.edittingCardValue.denominator
+      )
+    }
+
+    if (this.isEditingNewCard) await this.addCard()
+    else await this.updateCard()
+
+    this.closeCardEditor()
+  }
+
+  async addCard() {
+    const newCard: Card = {
+      ...this.edittingCardValue,
+      position: cardStore.currentMaxPosition + 1
+    }
+
+    const { cardId, card } = await firestoreWriter.addCard(
+      userStore.id || '',
+      newCard.title,
+      newCard.position,
+      newCard.denominator,
+      newCard.denominatorUnit
+    )
+    cardStore.addCard({ cardId, card })
+  }
+
   async updateCard() {
     const cardId: string = this.edittingCardId
     const card: Card = {
-      position: cardStore.cardList[cardId].position,
-      ...this.edittingCardValue
+      ...this.edittingCardValue,
+      position: cardStore.cardList[cardId].position
     }
-
-    // input type="number" の入力値が string っぽいのでキャスト
-    if (typeof card.denominator === 'string')
-      card.denominator = parseInt(card.denominator)
 
     cardStore.updateCard({ cardId, card })
     await firestoreWriter.updateCard(userStore.id || '', cardId)
-    this.closeCardEditor()
   }
 
   async deleteCard() {
