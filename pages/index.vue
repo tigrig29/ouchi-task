@@ -41,7 +41,9 @@
             no-resize
             no-auto-shrink
           ></b-form-textarea>
-          <b-button @click="addTask(cardId)">タスクを追加</b-button>
+          <b-button :disabled="!newTaskTitle[cardId]" @click="addTask(cardId)">
+            タスクを追加
+          </b-button>
         </b-card-text>
       </b-card>
     </b-card-group>
