@@ -1,23 +1,15 @@
-import { firestore } from 'firebase'
-
 export interface User {
   name: string
   email: string
-  lastLoginAt: firestore.Timestamp
+  lastLoginAt: Date
 }
 
 export interface Card {
   title: string
   position: number
   denominator: number
-  denominatorUnit:
-    | 'second'
-    | 'minute'
-    | 'hour'
-    | 'day'
-    | 'week'
-    | 'month'
-    | 'year'
+  denominatorUnit: 'day' | 'week' | 'month' | 'year'
+  lastResetAt: Date
 }
 
 export interface CardList {
@@ -29,7 +21,7 @@ export interface Task {
   title: string
   position: number
   done: boolean
-  updatedAt: firestore.Timestamp
+  updatedAt: Date
 }
 
 export interface TaskList {

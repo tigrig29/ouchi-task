@@ -5,16 +5,18 @@ import { Card, Task } from '~/types/firestore'
 export default {
   addCard: async (
     userId: string,
-    title: string,
-    position: number,
-    denominator: number,
-    denominatorUnit: Card['denominatorUnit']
+    title: Card['title'],
+    position: Card['position'],
+    denominator: Card['denominator'],
+    denominatorUnit: Card['denominatorUnit'],
+    lastResetAt: Card['lastResetAt']
   ) => {
     const card: Card = {
       title,
       position,
       denominator,
-      denominatorUnit
+      denominatorUnit,
+      lastResetAt
     }
     const cardRef = await cardStore.cardsRef(userId).add(card)
 
@@ -28,7 +30,8 @@ export default {
       title: card.title,
       position: card.position,
       denominator: card.denominator,
-      denominatorUnit: card.denominatorUnit
+      denominatorUnit: card.denominatorUnit,
+      lastResetAt: card.lastResetAt
     })
   },
   deleteCard: async (userId: string, cardId: string) => {
@@ -46,7 +49,7 @@ export default {
       title,
       position,
       done: false,
-      updatedAt: firestore.Timestamp.now()
+      updatedAt: new Date()
     }
     const taskRef = await taskStore.tasksRef(userId, cardId).add(task)
 

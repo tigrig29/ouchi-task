@@ -81,9 +81,6 @@
             class="w-25 mb-2 mr-sm-2 mb-sm-0"
             :options="[
               { text: '選択...', value: null },
-              { text: '秒', value: 'second' },
-              { text: '分', value: 'minute' },
-              { text: '時間', value: 'hour' },
               { text: '日', value: 'day' },
               { text: '週間', value: 'week' },
               { text: '月', value: 'month' },
@@ -91,6 +88,15 @@
             ]"
           ></b-form-select>
           <label>ごとにリセット</label>
+        </b-form>
+        <b-form class="mt-4">
+          <label>最終リセット日付</label>
+          <b-form-datepicker
+            id="input-card-last-reset-at"
+            v-model="edittingCardValue.lastResetAt"
+            class="mb-2 mr-sm-2 mb-sm-0"
+            :state="cardValidState.lastResetAt"
+          ></b-form-datepicker>
         </b-form>
         <b-button
           v-show="!isEditingNewCard"
@@ -130,6 +136,7 @@ import { Card } from '../types/firestore'
 import { firebase } from '~/plugins/firebase'
 import { cardStore, taskStore, userStore } from '~/store'
 import firestoreWriter from '~/assets/libs/firestoreWriter'
+import date from '~/assets/libs/date'
 
 import Logo from '~/components/Logo.vue'
 
@@ -150,11 +157,12 @@ export default class Index extends Vue {
 
   newTaskTitle: { [key: string]: string } = {}
   edittingCardId = ''
-  edittingCardValue: Card = {
+  edittingCardValue: any = {
     title: '',
     position: 0,
     denominator: 1,
-    denominatorUnit: 'day'
+    denominatorUnit: 'day',
+    lastResetAt: '2020-01-01'
   }
 
   get cards() {
@@ -168,19 +176,7 @@ export default class Index extends Vue {
   }
 
   get formattedClock() {
-    return (
-      this.clock.getFullYear() +
-      '/' +
-      this.clock.getMonth() +
-      '/' +
-      this.clock.getDate() +
-      ' ' +
-      this.clock.getHours() +
-      ':' +
-      this.clock.getMinutes() +
-      ':' +
-      this.clock.getSeconds()
-    )
+    return date.format(this.clock)
   }
 
   // =================================================
@@ -219,7 +215,8 @@ export default class Index extends Vue {
     return {
       title: this.edittingCardValue.title.length > 0,
       denominator: this.edittingCardValue.denominator > 0,
-      denominatorUnit: this.edittingCardValue.denominatorUnit !== null
+      denominatorUnit: this.edittingCardValue.denominatorUnit !== null,
+      lastResetAt: this.edittingCardValue.lastResetAt !== null
     }
   }
 
@@ -227,7 +224,8 @@ export default class Index extends Vue {
     return (
       this.cardValidState.title &&
       this.cardValidState.denominator &&
-      this.cardValidState.denominatorUnit
+      this.cardValidState.denominatorUnit &&
+      this.cardValidState.lastResetAt
     )
   }
 
@@ -244,6 +242,10 @@ export default class Index extends Vue {
         cardStore.cardList[cardId].denominator
       this.edittingCardValue.denominatorUnit =
         cardStore.cardList[cardId].denominatorUnit
+      this.edittingCardValue.lastResetAt = date.pickUpDate(
+        cardStore.cardList[cardId].lastResetAt,
+        '-'
+      )
     }
   }
 
@@ -257,7 +259,8 @@ export default class Index extends Vue {
         title: '',
         position: 0,
         denominator: 1,
-        denominatorUnit: 'day'
+        denominatorUnit: 'day',
+        lastResetAt: '2020-01-01'
       }
     }, 200)
   }
@@ -277,9 +280,16 @@ export default class Index extends Vue {
   }
 
   async addCard() {
+    const [
+      year,
+      month,
+      day
+    ]: string[] = this.edittingCardValue.lastResetAt.split('-')
+
     const newCard: Card = {
       ...this.edittingCardValue,
-      position: cardStore.currentMaxPosition + 1
+      position: cardStore.currentMaxPosition + 1,
+      lastResetAt: new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
     }
 
     const { cardId, card } = await firestoreWriter.addCard(
@@ -287,17 +297,27 @@ export default class Index extends Vue {
       newCard.title,
       newCard.position,
       newCard.denominator,
-      newCard.denominatorUnit
+      newCard.denominatorUnit,
+      newCard.lastResetAt
     )
     cardStore.addCard({ cardId, card })
   }
 
   async updateCard() {
+    const [
+      year,
+      month,
+      day
+    ]: string[] = this.edittingCardValue.lastResetAt.split('-')
+
     const cardId: string = this.edittingCardId
     const card: Card = {
       ...this.edittingCardValue,
-      position: cardStore.cardList[cardId].position
+      position: cardStore.cardList[cardId].position,
+      lastResetAt: new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
     }
+
+    console.log(card.lastResetAt)
 
     cardStore.updateCard({ cardId, card })
     await firestoreWriter.updateCard(userStore.id || '', cardId)
