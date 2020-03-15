@@ -1,0 +1,17 @@
+{
+  "projects": {
+    "default": "ouchi-task"
+  },
+  "targets": {
+    "ouchi-task": {
+      "hosting": {
+        "release": [
+          "ouchi-task"
+        ],
+        "develop": [
+          "ouchi-task-dev"
+        ]
+      }
+    }
+  }
+}
