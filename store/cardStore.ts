@@ -1,3 +1,4 @@
+import Vue from 'vue'
 import { Module, VuexModule, Mutation } from 'vuex-module-decorators'
 import { firestore } from 'firebase'
 import { db } from '~/plugins/firebase'
@@ -23,6 +24,7 @@ export default class CardStore extends VuexModule {
   @Mutation
   addCard(payload: { cardId: string; card: Card }) {
     const { cardId, card } = payload
+    Vue.set(this.cardList, cardId, {} as Card)
     this.cardList[cardId] = card
   }
 }

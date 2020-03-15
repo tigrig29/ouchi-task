@@ -1,3 +1,4 @@
+import Vue from 'vue'
 import { Module, VuexModule, Mutation } from 'vuex-module-decorators'
 import { firestore } from 'firebase'
 import { db } from '~/plugins/firebase'
@@ -35,6 +36,21 @@ export default class TaskStore extends VuexModule {
   @Mutation
   addTask(payload: { taskId: string; task: Task }) {
     const { taskId, task } = payload
+    Vue.set(this.taskList, taskId, {} as Task)
     this.taskList[taskId] = task
+  }
+
+  @Mutation
+  updateTaskTitle(payload: { taskId: string; title: string }) {
+    const { taskId, title } = payload
+    const task = this.taskList[taskId]
+    task.title = title
+  }
+
+  @Mutation
+  toggleTaskDone(payload: { taskId: string }) {
+    const { taskId } = payload
+    const task = this.taskList[taskId]
+    task.done = !task.done
   }
 }
