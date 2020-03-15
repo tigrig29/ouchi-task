@@ -59,10 +59,10 @@ export default class TaskStore extends VuexModule {
   }
 
   @Mutation
-  toggleTaskDone(payload: { taskId: string }) {
-    const { taskId } = payload
+  toggleTaskDone(payload: { taskId: string; done?: boolean }) {
+    const { taskId, done } = payload
     const task = this.taskList[taskId]
-    task.done = !task.done
+    task.done = done !== undefined ? done : !task.done
   }
 
   @Mutation

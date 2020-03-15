@@ -184,9 +184,45 @@ export default class Index extends Vue {
   // =================================================
 
   created() {
-    this.intervalId = setInterval(() => {
+    this.intervalId = setInterval(async () => {
       // 時計更新
       this.clock = new Date()
+
+      for (const cardId in cardStore.cardList) {
+        const card = cardStore.cardList[cardId]
+
+        const [year, month, day]: number[] = date
+          .pickUpDate(card.lastResetAt)
+          .split('/')
+          .map((value) => parseInt(value, 10))
+        const nextResetDate: Date = new Date(year, month - 1, day)
+        switch (card.denominatorUnit) {
+          case 'day':
+            nextResetDate.setDate(day + card.denominator)
+            break
+          case 'week':
+            nextResetDate.setDate(day + card.denominator * 7)
+            break
+          case 'month':
+            nextResetDate.setMonth(month + card.denominator)
+            break
+          case 'year':
+            nextResetDate.setFullYear(year + card.denominator)
+            break
+        }
+        if (new Date() >= nextResetDate) {
+          const newCard: Card = {
+            ...card,
+            lastResetAt: new Date()
+          }
+          cardStore.updateCard({ cardId, card: newCard })
+          await firestoreWriter.updateCard(userStore.id || '', cardId)
+
+          for (const taskId in taskStore.tasksSearchedByCardId(cardId)) {
+            this.toggleTaskDone(taskId, false)
+          }
+        }
+      }
     }, 1000)
   }
 
@@ -317,8 +353,6 @@ export default class Index extends Vue {
       lastResetAt: new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
     }
 
-    console.log(card.lastResetAt)
-
     cardStore.updateCard({ cardId, card })
     await firestoreWriter.updateCard(userStore.id || '', cardId)
   }
@@ -359,8 +393,8 @@ export default class Index extends Vue {
     firestoreWriter.updateTask(userStore.id || '', taskId)
   }
 
-  toggleTaskDone(taskId: string) {
-    taskStore.toggleTaskDone({ taskId })
+  toggleTaskDone(taskId: string, done?: boolean) {
+    taskStore.toggleTaskDone({ taskId, done })
     firestoreWriter.updateTask(userStore.id || '', taskId)
   }
 
