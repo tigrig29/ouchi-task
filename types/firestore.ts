@@ -7,7 +7,6 @@ export interface User {
 }
 
 export interface Card {
-  id: string
   title: string
   position: number
   denominator: number
@@ -19,12 +18,20 @@ export interface Card {
     | 'week'
     | 'month'
     | 'year'
-  tasks: Task[]
+}
+
+export interface CardList {
+  [key: string]: Card
 }
 
 export interface Task {
-  id: string
+  parentCardId: string
   title: string
+  position: number
   done: boolean
   updatedAt: firestore.Timestamp
+}
+
+export interface TaskList {
+  [key: string]: Task
 }

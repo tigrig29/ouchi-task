@@ -3,14 +3,14 @@
     <button @click="logout">Logout</button>
     <b-card-group deck class="cards">
       <b-card
-        v-for="(card, i) in cards"
-        :key="`card-${i}`"
+        v-for="(card, cardId) in cards"
+        :key="`card-${cardId}`"
         :header="card.title"
         class="text-center"
       >
         <b-card-text
-          v-for="(task, j) in card.tasks"
-          :key="`task-${j}`"
+          v-for="(task, taskId) in tasks(cardId)"
+          :key="`task-${taskId}`"
           class="text-left"
         >
           {{ task.title }}
@@ -28,7 +28,7 @@
 import { Component, Vue } from 'nuxt-property-decorator'
 import { BIconCircle, BIconCheck, BIconCheckCircle } from 'bootstrap-vue'
 import { firebase } from '~/plugins/firebase'
-import { userStore, taskStore } from '~/store'
+import { cardStore, taskStore } from '~/store'
 
 import Logo from '~/components/Logo.vue'
 
@@ -38,16 +38,18 @@ import Logo from '~/components/Logo.vue'
     BIconCircle,
     BIconCheck,
     BIconCheckCircle
-  }
+  },
+  middleware: 'fetchFirestore'
 })
 export default class Index extends Vue {
-  mounted() {
-    // userStore.isAuthenticated の判定は不要：middleware/redirect で行っているため
-    taskStore.fetch(userStore.id)
+  get cards() {
+    return cardStore.cardList
   }
 
-  get cards() {
-    return taskStore.cardsSortedByPosition
+  get tasks() {
+    return (cardId: string) => {
+      return taskStore.tasksSearchedByCardId(cardId)
+    }
   }
 
   async logout() {
