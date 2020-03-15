@@ -13,11 +13,19 @@
           :key="`task-${taskId}`"
           class="text-left"
         >
-          {{ task.title }}
-          <transition name="fade">
+          <b-form-textarea
+            :id="`input-task-title-${cardId}-${taskId}`"
+            class="task-title"
+            placeholder="タスク内容を入力……"
+            no-resize
+            no-auto-shrink
+            :value="task.title"
+            @change="updateTaskTitle(taskId, arguments[0])"
+          ></b-form-textarea>
+          <div @click="toggleTaskDone(taskId)">
             <b-icon-circle v-if="!task.done" variant="success" />
             <b-icon-check-circle v-else variant="success" font-scale="1.2" />
-          </transition>
+          </div>
         </b-card-text>
       </b-card>
     </b-card-group>
@@ -28,7 +36,8 @@
 import { Component, Vue } from 'nuxt-property-decorator'
 import { BIconCircle, BIconCheck, BIconCheckCircle } from 'bootstrap-vue'
 import { firebase } from '~/plugins/firebase'
-import { cardStore, taskStore } from '~/store'
+import { cardStore, taskStore, userStore } from '~/store'
+import firestoreWriter from '~/assets/libs/firestoreWriter'
 
 import Logo from '~/components/Logo.vue'
 
@@ -56,5 +65,22 @@ export default class Index extends Vue {
     await firebase.auth().signOut()
     this.$router.push('/login')
   }
+
+  updateTaskTitle(taskId: string, title: string) {
+    taskStore.updateTaskTitle({ taskId, title })
+    firestoreWriter.updateTask(userStore.id || '', taskId)
+  }
+
+  toggleTaskDone(taskId: string) {
+    taskStore.toggleTaskDone({ taskId })
+    firestoreWriter.updateTask(userStore.id || '', taskId)
+  }
 }
 </script>
+
+<style lang="scss" scoped>
+.task-title {
+  height: 36px;
+  border: none;
+}
+</style>
