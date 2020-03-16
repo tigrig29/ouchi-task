@@ -129,7 +129,6 @@
 import { Component, Vue } from 'nuxt-property-decorator'
 import {
   BIconCircle,
-  BIconCheck,
   BIconCheckCircle,
   BIconTrashFill,
   BIconGear
@@ -140,13 +139,9 @@ import { cardStore, taskStore, userStore } from '~/store'
 import firestoreWriter from '~/assets/libs/firestoreWriter'
 import date from '~/assets/libs/date'
 
-import Logo from '~/components/Logo.vue'
-
 @Component({
   components: {
-    Logo,
     BIconCircle,
-    BIconCheck,
     BIconCheckCircle,
     BIconTrashFill,
     BIconGear
