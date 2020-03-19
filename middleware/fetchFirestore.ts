@@ -1,44 +1,61 @@
-import { firestore } from 'firebase'
-import { userStore, cardStore, taskStore } from '~/store'
-import { Card, Task } from '~/types/firestore'
+import { userStore, taskListStore, taskStore } from '~/store'
+import { FireTaskList, FireTask } from '~/types/firestore'
+import firestoreManager from '~/assets/libs/firestoreManager'
 
 export default async () => {
   const userId = userStore.id
-
   if (!userId) return
 
-  cardStore.clearCards()
-  taskStore.clearTasks()
+  // Vuex Store を初期化
+  taskListStore.clear()
+  taskStore.clear()
 
-  const queryCards = await cardStore
-    .cardsRef(userId)
-    .orderBy('position')
-    .get()
+  // taskLists の QuerySnapshot 取得（旧スキーマの cards も対象）。
+  const [queryTaskLists, oldQueryCards] = await Promise.all([
+    firestoreManager.taskList.docs(userId),
+    firestoreManager.taskList.docs(userId, 'cards') // old schema
+  ])
 
-  for (const docCard of queryCards.docs) {
-    const cardId = docCard.id
-    const card: Card = docCard.data() as Card
-    // 日付の型修正
-    card.lastResetAt = (docCard.data()
-      .lastResetAt as firestore.Timestamp).toDate()
+  // users/{userId}/taskLists or cards/{taskListId} 以下の
+  // DocumentSnapshot をループ取得
+  for (const docTaskList of [...queryTaskLists.docs, ...oldQueryCards.docs]) {
+    // TaskList のドキュメント ID
+    const taskListId = docTaskList.id
 
-    cardStore.addCard({ cardId, card })
+    // Firestore の TaskList
+    const fireTaskList: FireTaskList = docTaskList.data() as FireTaskList
+    // Vuex の TaskList へ変換
+    const vuexTaskList = firestoreManager.taskList.convertFireToVuex(
+      taskListId,
+      fireTaskList
+    )
 
-    const queryTasks = await taskStore
-      .tasksRef(userId, cardId)
-      .orderBy('position')
-      .get()
+    // Vuex へ Add
+    taskListStore.add({ taskList: vuexTaskList })
 
+    // tasks の QuerySnapshot 取得
+    const queryTasks = await firestoreManager.task.docs(userId, taskListId)
+
+    // users/{userId}/taskLists or cards/{taskListId}/tasks/{taskId} 以下の
+    // DocumentSnapshot をループ取得
     for (const docTask of queryTasks.docs) {
-      const task: Task = {
-        parentCardId: cardId,
-        ...(docTask.data() as Task)
-      }
-      // 日付の型修正
-      task.updatedAt = (docTask.data()
-        .updatedAt as firestore.Timestamp).toDate()
+      // Firestore の TaskList
+      const fireTask: FireTask = docTask.data() as FireTask
+      // Vuex の TaskList へ変換
+      const vuexTask = firestoreManager.task.convertFireToVuex(
+        taskListId,
+        docTask.id,
+        fireTask
+      )
 
-      taskStore.addTask({ taskId: docTask.id, task })
+      // Vuex へ Add
+      taskStore.add({ task: vuexTask })
     }
   }
+
+  // `Card` -> `TaskList` にスキーマ変更したことにより、
+  // Firestore の order だけでは完全にソートしきれなくなったので、
+  // ソート処理する
+  taskListStore.sortList()
+  taskStore.sortList()
 }

@@ -1,37 +1,25 @@
 import { Module, VuexModule, Mutation, Action } from 'vuex-module-decorators'
-import { firebase } from '~/plugins/firebase'
+
+import { FireUser } from '~/types/firestore'
+
+export type VuexUser = Partial<FireUser> & {
+  id?: string
+  lastLoginAt?: Date
+}
 
 @Module({ stateFactory: true, namespaced: true, name: 'user' })
 export default class User extends VuexModule {
   duringAuthentication: boolean = false
 
-  id: string | null = null
-  name: string | null = null
+  id: VuexUser['id'] = ''
 
   get isAuthenticated() {
     return !!this.id
   }
 
   @Mutation
-  setId(id: string | null) {
-    this.id = id
-  }
-
-  @Mutation
-  setName(name: string | null) {
-    this.name = name
-  }
-
-  @Action
-  setUser(user: firebase.User | null) {
-    const id = user ? user.uid : null
-    const name = user ? user.displayName : null
-    this.setId(id)
-    this.setName(name)
-    this.setDuringAuthentication(false)
-
-    localStorage.setItem('vuex/user/id', JSON.stringify(this.id))
-    localStorage.setItem('vuex/user/name', JSON.stringify(this.name))
+  private setData(user: Partial<VuexUser>) {
+    this.id = user.id
   }
 
   @Mutation
@@ -40,10 +28,15 @@ export default class User extends VuexModule {
   }
 
   @Action
+  setUser(user: Partial<VuexUser>) {
+    this.setData(user)
+
+    localStorage.setItem('vuex/user/id', JSON.stringify(this.id))
+  }
+
+  @Action
   fetchUser() {
     const id = JSON.parse(localStorage.getItem('vuex/user/id') as string)
-    const name = JSON.parse(localStorage.getItem('vuex/user/name') as string)
-    this.setId(id)
-    this.setName(name)
+    this.setData({ id })
   }
 }

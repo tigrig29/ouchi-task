@@ -1,29 +1,30 @@
-export interface User {
+import { firestore } from 'firebase'
+
+export interface FireUser {
   name: string
   email: string
-  lastLoginAt: Date
+  lastLoginAt: firestore.Timestamp
 }
 
-export interface Card {
+export interface FireTaskList {
   title: string
   position: number
   denominator: number
-  denominatorUnit: 'day' | 'week' | 'month' | 'year'
-  lastResetAt: Date
+  denominatorUnit: string
+  lastResetAt: firestore.Timestamp
 }
 
-export interface CardList {
-  [key: string]: Card
+export interface FireTaskLists {
+  [key: string]: FireTaskList
 }
 
-export interface Task {
-  parentCardId: string
+export interface FireTask {
   title: string
   position: number
   done: boolean
-  updatedAt: Date
+  updatedAt: firestore.Timestamp
 }
 
-export interface TaskList {
-  [key: string]: Task
+export interface FireTasks {
+  [key: string]: FireTask
 }
