@@ -2,28 +2,30 @@
   <div class="main container-fluid">
     <p>{{ formattedClock }}</p>
     <button @click="logout">Logout</button>
+
+    <!-- Board -->
     <b-card-group deck class="taskLists">
-      <b-card
+      <!-- TaskList -->
+      <task-list
         v-for="taskList in taskLists"
         :key="`taskList-${taskList.id}`"
-        class="text-center"
+        :vuex-task-list="taskList"
       >
-        <template v-slot:header>
-          <span>{{ taskList.title }}</span>
-          <b-icon-gear @click="showTaskListEditor(taskList.id)" />
-        </template>
-
+        <!-- Task -->
         <task
           v-for="task in tasks(taskList.id)"
           :key="`task-${task.id}`"
           :vuex-task="task"
         />
+        <!-- Add Task -->
         <task-add :task-list-id="taskList.id" />
-      </b-card>
+      </task-list>
+
+      <!-- Add TaskList -->
+      <b-button class="mt-4" @click="showTaskListEditor()">
+        リストを追加
+      </b-button>
     </b-card-group>
-    <b-button class="mt-4" @click="showTaskListEditor()">
-      リストを追加
-    </b-button>
 
     <!-- TaskListEditor -->
     <task-list-editor />
@@ -36,7 +38,8 @@ import { Component, Vue } from 'nuxt-property-decorator'
 import { BIconGear } from 'bootstrap-vue'
 import Task from '~/components/parts/Task.vue'
 import TaskAdd from '~/components/parts/TaskAdd.vue'
-import TaskListEditor from '~/components/taskList/TaskListEditor.vue'
+import TaskList from '~/components/parts/TaskList.vue'
+import TaskListEditor from '~/components/parts/TaskListEditor.vue'
 
 import { VuexTaskList } from '~/store/taskListStore'
 import { VuexTask } from '~/store/taskStore'
@@ -51,6 +54,7 @@ import date from '~/assets/libs/date'
     BIconGear,
     Task,
     TaskAdd,
+    TaskList,
     TaskListEditor
   },
   middleware: 'fetchFirestore'
