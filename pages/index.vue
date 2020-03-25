@@ -12,49 +12,13 @@
           <span>{{ taskList.title }}</span>
           <b-icon-gear @click="showTaskListEditor(taskList.id)" />
         </template>
-        <b-card-text
+
+        <task
           v-for="task in tasks(taskList.id)"
           :key="`task-${task.id}`"
-          class="text-left"
-        >
-          <b-icon-trash-fill variant="danger" @click="onClickDelete(task.id)" />
-          <b-form-textarea
-            :id="`input-task-title-${taskList.id}-${task.id}`"
-            class="task-title"
-            placeholder="タスク内容を入力……"
-            no-resize
-            no-auto-shrink
-            :value="task.title"
-            @change="submitToUpdateTaskTitle(task.id, arguments[0])"
-            @keydown.enter.prevent="
-              submitToUpdateTaskTitle(task.id, arguments[0].target.value)
-              arguments[0].target.blur()
-            "
-          ></b-form-textarea>
-          <div @click="toggleTaskDone(task.id)">
-            <b-icon-circle v-if="!task.done" variant="success" />
-            <b-icon-check-circle v-else variant="success" font-scale="1.2" />
-          </div>
-        </b-card-text>
-
-        <b-card-text class="text-left">
-          <b-form-textarea
-            :id="`input-task-title-new-${taskList.id}`"
-            v-model="inputTaskTitle[taskList.id]"
-            class="task-title-new"
-            placeholder="新規タスク名を入力……"
-            no-resize
-            no-auto-shrink
-            @change="submitToInputTaskTitle(taskList.id)"
-            @keydown.enter.prevent="submitToInputTaskTitle(taskList.id)"
-          ></b-form-textarea>
-          <b-button
-            :disabled="!inputTaskTitle[taskList.id]"
-            @click="submitToInputTaskTitle(taskList.id)"
-          >
-            タスクを追加
-          </b-button>
-        </b-card-text>
+          :vuex-task="task"
+        />
+        <task-add :task-list-id="taskList.id" />
       </b-card>
     </b-card-group>
     <b-button class="mt-4" @click="showTaskListEditor()">
@@ -69,16 +33,13 @@
 <script lang="ts">
 import { Component, Vue } from 'nuxt-property-decorator'
 
-import {
-  BIconCircle,
-  BIconCheckCircle,
-  BIconTrashFill,
-  BIconGear
-} from 'bootstrap-vue'
+import { BIconGear } from 'bootstrap-vue'
+import Task from '~/components/parts/Task.vue'
+import TaskAdd from '~/components/parts/TaskAdd.vue'
 import TaskListEditor from '~/components/taskList/TaskListEditor.vue'
 
-import { VuexTask } from '~/store/taskStore'
 import { VuexTaskList } from '~/store/taskListStore'
+import { VuexTask } from '~/store/taskStore'
 
 import { firebase } from '~/plugins/firebase'
 import { taskListStore, taskStore, userStore, taskListEditor } from '~/store'
@@ -87,10 +48,9 @@ import date from '~/assets/libs/date'
 
 @Component({
   components: {
-    BIconCircle,
-    BIconCheckCircle,
-    BIconTrashFill,
     BIconGear,
+    Task,
+    TaskAdd,
     TaskListEditor
   },
   middleware: 'fetchFirestore'
@@ -98,8 +58,6 @@ import date from '~/assets/libs/date'
 export default class Index extends Vue {
   intervalId?: NodeJS.Timeout = undefined
   clock: Date = new Date()
-
-  inputTaskTitle: { [key: string]: string } = {}
 
   get taskLists() {
     return taskListStore.list
@@ -200,40 +158,10 @@ export default class Index extends Vue {
   }
 
   // =================================================
-  // task の更新処理
+  // Task
   // =================================================
 
-  submitToInputTaskTitle(taskListId: string) {
-    const title = this.inputTaskTitle[taskListId]
-    if (!title) return
-
-    const vuexTask: VuexTask = {
-      id: '',
-      parentId: taskListId,
-      title,
-      position: taskStore.currentMaxPosition(taskListId),
-      done: false,
-      updatedAt: new Date()
-    }
-    this.addTask(vuexTask)
-
-    this.inputTaskTitle[taskListId] = ''
-  }
-
-  submitToUpdateTaskTitle(taskId: string, title?: string) {
-    if (!title) return
-
-    const targetTask = taskStore.findById(taskId)
-    if (!targetTask) return
-
-    const vuexTask: VuexTask = {
-      ...targetTask,
-      title,
-      updatedAt: new Date()
-    }
-    this.updateTask(vuexTask)
-  }
-
+  // Task 完了チェックボックスのクリック時処理
   toggleTaskDone(taskId: string, done?: boolean) {
     const targetTask = taskStore.findById(taskId)
     if (!targetTask) return
@@ -244,35 +172,6 @@ export default class Index extends Vue {
       updatedAt: new Date()
     }
     this.updateTask(vuexTask)
-  }
-
-  async onClickDelete(taskId: string) {
-    const result: boolean = await this.$bvModal.msgBoxConfirm(
-      '削除してもよろしいですか？'
-    )
-
-    const targetTask = taskStore.findById(taskId)
-    if (!targetTask) return
-
-    if (result) this.deleteTask(targetTask)
-  }
-
-  async addTask(vuexTask: VuexTask) {
-    const userId = userStore.id
-    if (!userId) return
-
-    // VuexTaskList, FireTaskList の用意
-    const fireTask = firestoreManager.task.convertVuexToFire(vuexTask)
-
-    // Firestore へ Add
-    const taskId = await firestoreManager.task.add(
-      userId,
-      vuexTask.parentId,
-      fireTask
-    )
-    // Vuex へ Add
-    vuexTask.id = taskId
-    taskStore.add({ task: vuexTask })
   }
 
   async updateTask(vuexTask: VuexTask) {
@@ -292,23 +191,5 @@ export default class Index extends Vue {
       fireTask
     )
   }
-
-  async deleteTask(vuexTask: VuexTask) {
-    const userId = userStore.id
-    if (!userId) return
-
-    await firestoreManager.task.delete(userId, vuexTask.parentId, vuexTask.id)
-    taskStore.delete({ taskId: vuexTask.id })
-  }
 }
 </script>
-
-<style lang="scss" scoped>
-.task-title {
-  height: 36px;
-  border: none;
-  &-new {
-    height: 36px;
-  }
-}
-</style>
