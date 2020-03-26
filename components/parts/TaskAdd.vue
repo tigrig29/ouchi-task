@@ -23,8 +23,8 @@ import { Component, Vue, Prop } from 'nuxt-property-decorator'
 
 import { VuexTask } from '~/store/taskStore'
 
-import { userStore, taskStore } from '~/store'
-import firestoreManager from '~/assets/libs/firestoreManager'
+import { taskStore } from '~/store'
+import vuexfire from '~/assets/libs/vuexfire'
 
 @Component
 export default class TaskAdd extends Vue {
@@ -59,22 +59,8 @@ export default class TaskAdd extends Vue {
   // Push to Firestore / Vuex
   // =================================================
 
-  async addTask(vuexTask: VuexTask) {
-    const userId = userStore.id
-    if (!userId) return
-
-    // VuexTaskList, FireTaskList の用意
-    const fireTask = firestoreManager.task.convertVuexToFire(vuexTask)
-
-    // Firestore へ Add
-    const taskId = await firestoreManager.task.add(
-      userId,
-      vuexTask.parentId,
-      fireTask
-    )
-    // Vuex へ Add
-    vuexTask.id = taskId
-    taskStore.add({ task: vuexTask })
+  async addTask(vuexTaskNotHasId: VuexTask) {
+    await vuexfire.task.addBoth(vuexTaskNotHasId)
   }
 }
 </script>

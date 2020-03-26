@@ -28,8 +28,8 @@ import { BIconCircle, BIconCheckCircle, BIconTrashFill } from 'bootstrap-vue'
 
 import { VuexTask } from '~/store/taskStore'
 
-import { userStore, taskStore } from '~/store'
-import firestoreManager from '~/assets/libs/firestoreManager'
+import { taskStore } from '~/store'
+import vuexfire from '~/assets/libs/vuexfire'
 
 @Component({
   components: {
@@ -91,29 +91,13 @@ export default class Task extends Vue {
   // =================================================
 
   async updateTask(vuexTask: VuexTask) {
-    const userId = userStore.id
-    if (!userId) return
-
-    // FireTaskList の用意
-    const fireTask = firestoreManager.task.convertVuexToFire(vuexTask)
-
-    // Vuex の Update
-    taskStore.update({ task: vuexTask })
-    // Firestore の Update
-    await firestoreManager.task.update(
-      userId,
-      vuexTask.parentId,
-      vuexTask.id,
-      fireTask
-    )
+    // Vuex, Firestore 両方更新
+    await vuexfire.task.updateBoth(vuexTask)
   }
 
   async deleteTask(vuexTask: VuexTask) {
-    const userId = userStore.id
-    if (!userId) return
-
-    await firestoreManager.task.delete(userId, vuexTask.parentId, vuexTask.id)
-    taskStore.delete({ taskId: vuexTask.id })
+    // Vuex, Firestore 両方削除
+    await vuexfire.task.deleteBoth(vuexTask)
   }
 }
 </script>

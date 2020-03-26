@@ -1,9 +1,6 @@
-import date from './date'
 import { taskStore } from '~/store'
 import { FireTaskList, FireTask } from '~/types/firestore'
 import { db } from '~/plugins/firebase'
-import { VuexTaskList } from '~/store/taskListStore'
-import { VuexTask } from '~/store/taskStore'
 
 const firestoreManager = {
   // =================================================
@@ -92,58 +89,6 @@ const firestoreManager = {
       // taskList 削除
       const taskListRef = await this.docRef(userId, taskListId)
       await taskListRef.delete()
-    },
-
-    // -----------------------------------------------
-    // Utils
-    // -----------------------------------------------
-
-    /**
-     * FireTaskList 型の taskList オブジェクトを、 VuexTaskList 型に変換する
-     */
-    get convertFireToVuex() {
-      return (taskListId: string, fireTaskList: FireTaskList) => {
-        const {
-          title,
-          position,
-          denominator,
-          denominatorUnit,
-          lastResetAt
-        } = fireTaskList
-        const vuexTaskList: VuexTaskList = {
-          id: taskListId,
-          title,
-          position,
-          denominator: denominator.toString(),
-          denominatorUnit: denominatorUnit as VuexTaskList['denominatorUnit'],
-          lastResetAt: date.pickUpDate(lastResetAt.toDate())
-        }
-        return vuexTaskList
-      }
-    },
-    /**
-     * VuexTaskList 型の taskList オブジェクトを、 FireTaskList 型に変換する
-     */
-    get convertVuexToFire() {
-      return (vuexTaskList: VuexTaskList) => {
-        const {
-          title,
-          position,
-          denominator,
-          denominatorUnit,
-          lastResetAt
-        } = vuexTaskList
-        const fireTaskList: FireTaskList = {
-          title: title || '',
-          position: position || -1,
-          denominator: parseInt(denominator || '0'),
-          denominatorUnit: denominatorUnit || '',
-          lastResetAt: date.reversePickUpDate(
-            lastResetAt || '2020-01-01'
-          ) as any
-        }
-        return fireTaskList
-      }
     }
   },
 
@@ -231,47 +176,6 @@ const firestoreManager = {
     async delete(userId: string, taskListId: string, taskId: string) {
       const docRef = await this.docRef(userId, taskListId, taskId)
       await docRef.delete()
-    },
-
-    // -----------------------------------------------
-    // Utils
-    // -----------------------------------------------
-
-    /**
-     * FireTask 型の task オブジェクトを、 VuexTask 型に変換する
-     */
-    get convertFireToVuex() {
-      return (
-        taskListId: string,
-        taskId: string,
-        fireTask: FireTask
-      ): VuexTask => {
-        const { title, position, done, updatedAt } = fireTask
-        const vuexTask: VuexTask = {
-          id: taskId,
-          parentId: taskListId,
-          title,
-          position,
-          done,
-          updatedAt: updatedAt.toDate()
-        }
-        return vuexTask
-      }
-    },
-    /**
-     * VuexTask 型の task オブジェクトを、 FireTask 型に変換する
-     */
-    get convertVuexToFire() {
-      return (vuexTask: VuexTask) => {
-        const { title, position, done, updatedAt } = vuexTask
-        const fireTask: FireTask = {
-          title,
-          position,
-          done,
-          updatedAt: updatedAt as any
-        }
-        return fireTask
-      }
     }
   }
 }

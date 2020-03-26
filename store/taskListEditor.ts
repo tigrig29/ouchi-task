@@ -1,9 +1,11 @@
 import Vue from 'vue'
 import { Module, VuexModule, Mutation, Action } from 'vuex-module-decorators'
+
 import { FireTaskList } from '~/types/firestore'
-import { taskListStore, userStore } from '~/utils/store-accessor'
+
+import { taskListStore } from '~/utils/store-accessor'
 import date from '~/assets/libs/date'
-import firestoreManager from '~/assets/libs/firestoreManager'
+import vuexfire from '~/assets/libs/vuexfire'
 
 export interface VuexTaskList {
   id: string
@@ -109,24 +111,8 @@ export default class TaskListEditor extends VuexModule {
    */
   @Action
   async pushToAdd() {
-    const userId = userStore.id
-    if (!userId) return
-
-    // VuexTaskList, FireTaskList の用意
-    const vuexTaskList: VuexTaskList = {
-      ...this.taskList
-    } as VuexTaskList
-    const fireTaskList = firestoreManager.taskList.convertVuexToFire(
-      vuexTaskList
-    )
-    // Firestore へ Add
-    const taskListId = await firestoreManager.taskList.add(
-      userStore.id || '',
-      fireTaskList
-    )
-    // Vuex へ Add
-    vuexTaskList.id = taskListId
-    taskListStore.add({ taskList: vuexTaskList })
+    // Vuex, Firestore の両方で Add
+    await vuexfire.taskList.addBoth(this.taskList as VuexTaskList)
   }
 
   /**
@@ -134,19 +120,8 @@ export default class TaskListEditor extends VuexModule {
    */
   @Action
   async pushToUpdate() {
-    const [userId, taskListId] = [userStore.id, this.taskList.id]
-    if (!userId || !taskListId) return
-
-    // VuexTaskList, FireTaskList の用意
-    const vuexTaskList: VuexTaskList = {
-      ...this.taskList
-    } as VuexTaskList
-    const fireTaskList = firestoreManager.taskList.convertVuexToFire(
-      vuexTaskList
-    )
-
-    taskListStore.update({ taskList: vuexTaskList })
-    await firestoreManager.taskList.update(userId, taskListId, fireTaskList)
+    // Vuex, Firestore 両方更新
+    await vuexfire.taskList.updateBoth(this.taskList as VuexTaskList)
   }
 
   /**
@@ -154,10 +129,7 @@ export default class TaskListEditor extends VuexModule {
    */
   @Action
   async pushToDelete() {
-    const [userId, taskListId] = [userStore.id, this.taskList.id]
-    if (!userId || !taskListId) return
-
-    await firestoreManager.taskList.delete(userId, taskListId)
-    taskListStore.delete({ taskListId })
+    // Vuex, Firestore 両方削除
+    await vuexfire.taskList.deleteBoth(this.taskList as VuexTaskList)
   }
 }
