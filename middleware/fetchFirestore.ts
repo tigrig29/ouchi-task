@@ -1,6 +1,8 @@
-import { userStore, taskListStore, taskStore } from '~/store'
 import { FireTaskList, FireTask } from '~/types/firestore'
+
+import { userStore, taskListStore, taskStore } from '~/store'
 import firestoreManager from '~/assets/libs/firestoreManager'
+import vuexfire from '~/assets/libs/vuexfire'
 
 export default async () => {
   const userId = userStore.id
@@ -25,7 +27,7 @@ export default async () => {
     // Firestore の TaskList
     const fireTaskList: FireTaskList = docTaskList.data() as FireTaskList
     // Vuex の TaskList へ変換
-    const vuexTaskList = firestoreManager.taskList.convertFireToVuex(
+    const vuexTaskList = vuexfire.taskList.convertFireToVuex(
       taskListId,
       fireTaskList
     )
@@ -42,7 +44,7 @@ export default async () => {
       // Firestore の TaskList
       const fireTask: FireTask = docTask.data() as FireTask
       // Vuex の TaskList へ変換
-      const vuexTask = firestoreManager.task.convertFireToVuex(
+      const vuexTask = vuexfire.task.convertFireToVuex(
         taskListId,
         docTask.id,
         fireTask

@@ -37,10 +37,10 @@ import TaskListEditor from '~/components/parts/TaskListEditor.vue'
 import { VuexTaskList } from '~/store/taskListStore'
 import { VuexTask } from '~/store/taskStore'
 
-import { userStore, taskListStore, taskStore, taskListEditor } from '~/store'
+import { taskListStore, taskStore, taskListEditor } from '~/store'
 
 import date from '~/assets/libs/date'
-import firestoreManager from '~/assets/libs/firestoreManager'
+import vuexfire from '~/assets/libs/vuexfire'
 
 @Component({
   components: {
@@ -131,48 +131,25 @@ export default class Board extends Vue {
 
   // TaskList 更新処理（done リセット処理で呼び出す）
   async updateLastResetAt(taskList: VuexTaskList, resetDate: Date) {
-    const userId = userStore.id
-    if (!userId) return
-
-    // VuexTaskList の用意
+    // 更新後 VuexTaskList の作成
     const vuexTaskList: VuexTaskList = {
       ...taskList,
       lastResetAt: date.pickUpDate(resetDate)
     }
-    // FireTaskList の用意
-    const fireTaskList = firestoreManager.taskList.convertVuexToFire(
-      vuexTaskList
-    )
-
-    // Vuex の Update
-    taskListStore.update({ taskList: vuexTaskList })
-    // Firestore の Update
-    await firestoreManager.taskList.update(userId, taskList.id, fireTaskList)
+    // Vuex, Firestore 両方更新
+    await vuexfire.taskList.updateBoth(vuexTaskList)
   }
 
   // Taks.done リセット処理
   async resetDone(task: VuexTask, updatedAt: Date) {
-    const userId = userStore.id
-    if (!userId) return
-
-    // VuexTaskList の用意
+    // 更新後 VuexTask の作成
     const vuexTask: VuexTask = {
       ...task,
       done: false,
       updatedAt
     }
-    // FireTaskList の用意
-    const fireTask = firestoreManager.task.convertVuexToFire(vuexTask)
-
-    // Vuex の Update
-    taskStore.update({ task: vuexTask })
-    // Firestore の Update
-    await firestoreManager.task.update(
-      userId,
-      vuexTask.parentId,
-      vuexTask.id,
-      fireTask
-    )
+    // Vuex, Firestore 両方更新
+    await vuexfire.task.updateBoth(vuexTask)
   }
 }
 </script>
