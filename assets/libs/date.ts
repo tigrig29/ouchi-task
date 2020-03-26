@@ -1,3 +1,5 @@
+import { VuexTaskList } from '~/store/taskListStore'
+
 export default {
   // =================================================
   // Formatter ( Date -> string )
@@ -57,5 +59,51 @@ export default {
       .split(monthSeparator)
       .map((value) => parseInt(value))
     return new Date(year, month - 1, day)
+  },
+
+  // =================================================
+  // Control date values
+  // =================================================
+
+  /**
+   * Date インスタンスから、年、月、日の数値を取得する（月は 0 ~ 11）
+   * @param date 対象の Date インスタンス
+   */
+  getDateValues(date: Date) {
+    return {
+      day: date.getDate(),
+      month: date.getMonth(),
+      year: date.getFullYear()
+    }
+  },
+
+  /**
+   * 日付の加算処理
+   * @param baseDate 加算対象の Date インスタンス
+   * @param unit 加算単位（年、月、日……）
+   * @param value 加算する値
+   */
+  addDateValues(
+    baseDate: Date,
+    unit: VuexTaskList['denominatorUnit'],
+    value: number
+  ) {
+    const date: Date = new Date(baseDate)
+    const { day, month, year } = this.getDateValues(date)
+    switch (unit) {
+      case 'day':
+        date.setDate(day + value)
+        break
+      case 'week':
+        date.setDate(day + value * 7)
+        break
+      case 'month':
+        date.setMonth(month + value)
+        break
+      case 'year':
+        date.setFullYear(year + value)
+        break
+    }
+    return date
   }
 }
