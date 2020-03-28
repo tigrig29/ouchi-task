@@ -12,48 +12,41 @@ export default async () => {
   taskListStore.clear()
   taskStore.clear()
 
-  // taskLists の QuerySnapshot 取得（旧スキーマの cards も対象）。
+  // TaskLists の QuerySnapshot 取得（旧スキーマの cards も対象）。
   const [queryTaskLists, oldQueryCards] = await Promise.all([
     firestoreManager.taskList.docs(userId),
     firestoreManager.taskList.docs(userId, 'cards') // old schema
   ])
+  const docsTaskList = [...queryTaskLists.docs, ...oldQueryCards.docs]
 
-  // users/{userId}/taskLists or cards/{taskListId} 以下の
-  // DocumentSnapshot をループ取得
-  for (const docTaskList of [...queryTaskLists.docs, ...oldQueryCards.docs]) {
-    // TaskList のドキュメント ID
-    const taskListId = docTaskList.id
+  // ループ内 await するため、Promise.all
+  await Promise.all(
+    // `TaskList` の DocumentQuerySnapshot の取得ループ
+    docsTaskList.map(async (docTaskList) => {
+      const taskListId = docTaskList.id
 
-    // Firestore の TaskList
-    const fireTaskList: FireTaskList = docTaskList.data() as FireTaskList
-    // Vuex の TaskList へ変換
-    const vuexTaskList = vuexfire.taskList.convertFireToVuex(
-      taskListId,
-      fireTaskList
-    )
-
-    // Vuex へ Add
-    taskListStore.add({ taskList: vuexTaskList })
-
-    // tasks の QuerySnapshot 取得
-    const queryTasks = await firestoreManager.task.docs(userId, taskListId)
-
-    // users/{userId}/taskLists or cards/{taskListId}/tasks/{taskId} 以下の
-    // DocumentSnapshot をループ取得
-    for (const docTask of queryTasks.docs) {
-      // Firestore の TaskList
-      const fireTask: FireTask = docTask.data() as FireTask
-      // Vuex の TaskList へ変換
-      const vuexTask = vuexfire.task.convertFireToVuex(
+      // VuexTaskList へ変換し、VuexStore へ Add
+      const vuexTaskList = vuexfire.taskList.convertFireToVuex(
         taskListId,
-        docTask.id,
-        fireTask
+        docTaskList.data() as FireTaskList
       )
+      taskListStore.add({ taskList: vuexTaskList })
 
-      // Vuex へ Add
-      taskStore.add({ task: vuexTask })
-    }
-  }
+      // tasks の QuerySnapshot 取得
+      const queryTasks = await firestoreManager.task.docs(userId, taskListId)
+
+      // `Task` の DocumentQuerySnapshot の取得ループ
+      for (const docTask of queryTasks.docs) {
+        // VuexTask へ変換し、VuexStore へ Add
+        const vuexTask = vuexfire.task.convertFireToVuex(
+          taskListId,
+          docTask.id,
+          docTask.data() as FireTask
+        )
+        taskStore.add({ task: vuexTask })
+      }
+    })
+  )
 
   // `Card` -> `TaskList` にスキーマ変更したことにより、
   // Firestore の order だけでは完全にソートしきれなくなったので、
