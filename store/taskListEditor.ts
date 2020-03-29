@@ -5,7 +5,7 @@ import { FireTaskList } from '~/types/firestore'
 
 import { taskListStore } from '~/utils/store-accessor'
 import date from '~/assets/libs/date'
-import vuexfire from '~/assets/libs/vuexfire'
+import { VfTaskList } from '~/assets/libs/vuexfire'
 
 export interface VuexTaskList {
   id: string
@@ -112,7 +112,7 @@ export default class TaskListEditor extends VuexModule {
   @Action
   async pushToAdd() {
     // Vuex, Firestore の両方で Add
-    await vuexfire.taskList.addBoth(this.taskList as VuexTaskList)
+    await VfTaskList.addBoth(this.taskList as VuexTaskList)
   }
 
   /**
@@ -121,7 +121,7 @@ export default class TaskListEditor extends VuexModule {
   @Action
   async pushToUpdate() {
     // Vuex, Firestore 両方更新
-    await vuexfire.taskList.updateBoth(this.taskList as VuexTaskList)
+    await VfTaskList.updateBoth(this.taskList as VuexTaskList)
   }
 
   /**
@@ -130,6 +130,6 @@ export default class TaskListEditor extends VuexModule {
   @Action
   async pushToDelete() {
     // Vuex, Firestore 両方削除
-    await vuexfire.taskList.deleteBoth(this.taskList as VuexTaskList)
+    await VfTaskList.deleteBoth(this.taskList as VuexTaskList)
   }
 }

@@ -40,7 +40,7 @@ import { VuexTask } from '~/store/taskStore'
 import { taskListStore, taskStore, taskListEditor } from '~/store'
 
 import date from '~/assets/libs/date'
-import vuexfire from '~/assets/libs/vuexfire'
+import { VfTaskList, VfTask } from '~/assets/libs/vuexfire'
 
 @Component({
   components: {
@@ -137,7 +137,7 @@ export default class Board extends Vue {
       lastResetAt: date.pickUpDate(resetDate)
     }
     // Vuex, Firestore 両方更新
-    await vuexfire.taskList.updateBoth(vuexTaskList)
+    await VfTaskList.updateBoth(vuexTaskList)
   }
 
   // Taks.done リセット処理
@@ -149,7 +149,7 @@ export default class Board extends Vue {
       updatedAt
     }
     // Vuex, Firestore 両方更新
-    await vuexfire.task.updateBoth(vuexTask)
+    await VfTask.updateBoth(vuexTask)
   }
 }
 </script>
