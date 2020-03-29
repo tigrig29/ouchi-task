@@ -1,8 +1,8 @@
 import { FireTaskList, FireTask } from '~/types/firestore'
 
 import { userStore, taskListStore, taskStore } from '~/store'
-import firestoreManager from '~/assets/libs/firestoreManager'
-import vuexfire from '~/assets/libs/vuexfire'
+import { FmTask, FmTaskList } from '~/assets/libs/firestoreManager'
+import { VfTaskList, VfTask } from '~/assets/libs/vuexfire'
 
 export default async () => {
   const userId = userStore.id
@@ -14,8 +14,8 @@ export default async () => {
 
   // TaskLists の QuerySnapshot 取得（旧スキーマの cards も対象）。
   const [queryTaskLists, oldQueryCards] = await Promise.all([
-    firestoreManager.taskList.docs(userId),
-    firestoreManager.taskList.docs(userId, 'cards') // old schema
+    FmTaskList.docsQuerySnapshot(userId),
+    FmTaskList.docsQuerySnapshot(userId, 'cards') // old schema
   ])
   const docsTaskList = [...queryTaskLists.docs, ...oldQueryCards.docs]
 
@@ -26,19 +26,19 @@ export default async () => {
       const taskListId = docTaskList.id
 
       // VuexTaskList へ変換し、VuexStore へ Add
-      const vuexTaskList = vuexfire.taskList.convertFireToVuex(
+      const vuexTaskList = VfTaskList.convertFireToVuex(
         taskListId,
         docTaskList.data() as FireTaskList
       )
       taskListStore.add({ taskList: vuexTaskList })
 
       // tasks の QuerySnapshot 取得
-      const queryTasks = await firestoreManager.task.docs(userId, taskListId)
+      const queryTasks = await FmTask.docsQuerySnapshot(userId, taskListId)
 
       // `Task` の DocumentQuerySnapshot の取得ループ
       for (const docTask of queryTasks.docs) {
         // VuexTask へ変換し、VuexStore へ Add
-        const vuexTask = vuexfire.task.convertFireToVuex(
+        const vuexTask = VfTask.convertFireToVuex(
           taskListId,
           docTask.id,
           docTask.data() as FireTask

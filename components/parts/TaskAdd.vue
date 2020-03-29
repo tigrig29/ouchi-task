@@ -24,7 +24,7 @@ import { Component, Vue, Prop } from 'nuxt-property-decorator'
 import { VuexTask } from '~/store/taskStore'
 
 import { taskStore } from '~/store'
-import vuexfire from '~/assets/libs/vuexfire'
+import { VfTask } from '~/assets/libs/vuexfire'
 
 @Component
 export default class TaskAdd extends Vue {
@@ -60,7 +60,7 @@ export default class TaskAdd extends Vue {
   // =================================================
 
   async addTask(vuexTaskNotHasId: VuexTask) {
-    await vuexfire.task.addBoth(vuexTaskNotHasId)
+    await VfTask.addBoth(vuexTaskNotHasId)
   }
 }
 </script>

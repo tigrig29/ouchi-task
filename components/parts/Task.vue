@@ -29,7 +29,7 @@ import { BIconCircle, BIconCheckCircle, BIconTrashFill } from 'bootstrap-vue'
 import { VuexTask } from '~/store/taskStore'
 
 import { taskStore } from '~/store'
-import vuexfire from '~/assets/libs/vuexfire'
+import { VfTask } from '~/assets/libs/vuexfire'
 
 @Component({
   components: {
@@ -92,12 +92,12 @@ export default class Task extends Vue {
 
   async updateTask(vuexTask: VuexTask) {
     // Vuex, Firestore 両方更新
-    await vuexfire.task.updateBoth(vuexTask)
+    await VfTask.updateBoth(vuexTask)
   }
 
   async deleteTask(vuexTask: VuexTask) {
     // Vuex, Firestore 両方削除
-    await vuexfire.task.deleteBoth(vuexTask)
+    await VfTask.deleteBoth(vuexTask)
   }
 }
 </script>
