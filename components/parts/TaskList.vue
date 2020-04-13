@@ -36,3 +36,11 @@ export default class TaskList extends Vue {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.TaskList {
+  .card-body {
+    padding: 0.5rem;
+  }
+}
+</style>

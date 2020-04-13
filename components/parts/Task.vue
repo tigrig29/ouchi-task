@@ -1,6 +1,27 @@
 <template>
-  <b-card-text class="Task text-left">
-    <b-icon-trash-fill variant="danger" @click="onClickDelete(vuexTask.id)" />
+  <div class="Task text-left py-1">
+    <div
+      class="Task__Checkbox border rounded"
+      :class="{
+        'bg-success': vuexTask.done
+      }"
+      @click="toggleTaskDone(vuexTask.id)"
+    >
+      <svg
+        class="Task__Checkbox__Icon"
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M3 7.27612L6.89697 10.8518L13.6645 4.12843"
+          stroke="white"
+          stroke-width="2"
+        />
+      </svg>
+    </div>
     <b-form-textarea
       :id="`input-task-title-${vuexTask.parentId}-${vuexTask.id}`"
       class="Task__Title"
@@ -14,30 +35,18 @@
         arguments[0].target.blur()
       "
     ></b-form-textarea>
-    <div @click="toggleTaskDone(vuexTask.id)">
-      <b-icon-circle v-if="!vuexTask.done" variant="success" />
-      <b-icon-check-circle v-else variant="success" font-scale="1.2" />
-    </div>
-  </b-card-text>
+  </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue, Prop } from 'nuxt-property-decorator'
-
-import { BIconCircle, BIconCheckCircle, BIconTrashFill } from 'bootstrap-vue'
 
 import { VuexTask } from '~/store/taskStore'
 
 import { taskStore } from '~/store'
 import { VfTask } from '~/assets/libs/vuexfire'
 
-@Component({
-  components: {
-    BIconCircle,
-    BIconCheckCircle,
-    BIconTrashFill
-  }
-})
+@Component
 export default class Task extends Vue {
   @Prop()
   vuexTask!: VuexTask
@@ -104,8 +113,22 @@ export default class Task extends Vue {
 
 <style lang="scss" scoped>
 .Task {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  align-content: center;
+  align-items: center;
+  &__Checkbox {
+    width: 18px;
+    height: 18px;
+    margin: auto;
+    cursor: pointer;
+    &__Icon {
+      vertical-align: 2px;
+    }
+  }
   &__Title {
     height: 36px;
+    overflow: hidden;
     border: none;
   }
 }
