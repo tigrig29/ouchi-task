@@ -12,14 +12,20 @@
         :key="`task-${task.id}`"
         :vuex-task="task"
       />
-      <!-- Add Task -->
+      <!-- Button [Add Task] -->
       <task-add :task-list-id="taskList.id" />
     </task-list>
 
-    <!-- Add TaskList -->
-    <b-button class="mt-4" @click="showTaskListEditor()">
-      リストを追加
-    </b-button>
+    <!-- Button [Add TaskList] -->
+    <div class="Board__ButtonAddTaskList">
+      <b-button
+        class="w-100"
+        variant="outline-secondary"
+        @click="showTaskListEditor()"
+      >
+        リストを追加
+      </b-button>
+    </div>
 
     <!-- TaskListEditor -->
     <task-list-editor />
