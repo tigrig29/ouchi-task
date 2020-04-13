@@ -1,5 +1,5 @@
 <template>
-  <b-card-group deck class="Board">
+  <div class="Board">
     <!-- TaskList -->
     <task-list
       v-for="taskList in taskLists"
@@ -23,7 +23,7 @@
 
     <!-- TaskListEditor -->
     <task-list-editor />
-  </b-card-group>
+  </div>
 </template>
 
 <script lang="ts">
@@ -153,3 +153,12 @@ export default class Board extends Vue {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.Board {
+  display: grid;
+  gap: 1rem;
+  grid-template-rows: repeat(auto-fit, minmax(256px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(256px, 1fr));
+}
+</style>
